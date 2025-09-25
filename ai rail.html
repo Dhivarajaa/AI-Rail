@@ -1,0 +1,1504 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI-Powered Train Traffic Control — Demo</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --accent: #22c55e;
+      --accent-hover: #16a34a;
+      --bg: #0f172a;
+      --card: #1e293b;
+      --card-hover: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.05);
+      --transition: all 0.2s ease-in-out;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.1) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(34, 197, 94, 0.1) 0px, transparent 50%);
+      min-height: 100vh;
+    }
+
+    /* Header Styles */
+    header {
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo img {
+      width: 36px;
+      height: 36px;
+    }
+
+    .logo h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #22c55e, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0;
+    }
+
+    .tagline {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+    }
+
+    /* Main Layout */
+    main {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 1.5rem;
+      padding: 1.5rem;
+      max-width: 1600px;
+      margin: 0 auto;
+      min-height: calc(100vh - 80px);
+    }
+
+    /* Card Styles */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      transition: var(--transition);
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Button Styles */
+    button, .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    button:hover, .btn:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    button:active, .btn:active {
+      transform: translateY(0);
+    }
+
+    button.secondary, .btn.secondary {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    button.secondary:hover, .btn.secondary:hover {
+      background: var(--card-hover);
+    }
+
+    button.success, .btn.success {
+      background: var(--accent);
+    }
+
+    button.success:hover, .btn.success:hover {
+      background: var(--accent-hover);
+    }
+
+    button.danger, .btn.danger {
+      background: var(--danger);
+    }
+
+    /* Form Elements */
+    input, select, textarea {
+      width: 100%;
+      padding: 0.625rem 0.875rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
+      font-size: 0.875rem;
+      transition: var(--transition);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+
+    /* Status Pills */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .risk-high { background: rgba(239, 68, 68, 0.1); color: #fca5a5; }
+    .risk-med { background: rgba(234, 179, 8, 0.1); color: #fde047; }
+    .risk-low { background: rgba(34, 197, 94, 0.1); color: #86efac; }
+
+    /* Message Container */
+    .message-container {
+      height: 400px;
+      overflow-y: auto;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: var(--radius);
+      margin-bottom: 1rem;
+      border: 1px solid var(--border);
+    }
+
+    .message {
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      max-width: 80%;
+      position: relative;
+      animation: fadeIn 0.3s ease-out;
+      line-height: 1.5;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .user-message {
+      background: rgba(37, 99, 235, 0.2);
+      margin-left: auto;
+      border-top-right-radius: 4px;
+    }
+
+    .assistant-message {
+      background: rgba(30, 41, 59, 0.8);
+      margin-right: auto;
+      border-top-left-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    /* Input Container */
+    .input-container {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .input-container input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+    }
+
+    .voice-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      color: white;
+    }
+
+    .voice-btn:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .voice-btn.listening {
+      background: var(--danger);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    /* Schedule View */
+    #scheduleView {
+      height: 100%;
+      overflow-y: auto;
+      padding-right: 0.5rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+      
+      .card {
+        margin-bottom: 1rem;
+      }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary-hover);
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .fade-in-up {
+      animation: fadeInUp 0.5s ease-out forwards;
+    }
+
+    /* Notification Styles */
+    .notification {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--card);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s ease-in-out;
+      z-index: 1000;
+      border-left: 4px solid var(--accent);
+      max-width: 300px;
+    }
+
+    .notification.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="notification" class="notification"></div>
+  <header>
+    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 24 24'%3E%3Cpath fill='%2322c55e' d='M12 2L3 6v11a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3V6l-9-4z'/%3E%3C/svg%3E" alt="logo">
+    <div>
+      <h1>AI-Powered Train Traffic Control — Demo</h1>
+      <div class="muted">Simple single-file prototype: scheduler + in-browser ML + visualizer</div>
+    </div>
+  </header>
+
+  <main>
+    <aside class="sidebar">
+      <div class="card">
+        <strong>Add Train</strong>
+        <div style="margin-top:10px">
+          <label>Train Name</label>
+          <input id="tname" placeholder="EX: 12423 Rajdhani" />
+          <label>Type / Priority</label>
+          <select id="ttype">
+            <option value="express">Express (High)</option>
+            <option value="passenger">Passenger (Medium)</option>
+            <option value="freight">Freight (Low)</option>
+            <option value="maintenance">Maintenance (Lowest)</option>
+          </select>
+          <label>Arrival Window (min)</label>
+          <input id="arr" type="number" value="0" />
+          <label>Expected Dwell (min)</label>
+          <input id="dwell" type="number" value="5" />
+          <label>Length (km)</label>
+          <input id="length" type="number" value="2" />
+          <div style="margin-top:8px" class="btn-row">
+            <button id="addTrain">Add</button>
+            <button id="simulate">Simulate</button>
+          </div>
+          <div style="margin-top:8px">
+            <label>Load Railway Junction Schedules</label>
+            <div style="margin-top:6px; display: flex; flex-direction: column; gap: 4px;">
+              <button id="loadErode" style="font-size: 11px; padding: 6px;">🚂 ERODE JN - ED</button>
+              <button id="loadChennai" style="font-size: 11px; padding: 6px;">🚂 CHENNAI CENTRAL - MAS</button>
+              <button id="loadBangalore" style="font-size: 11px; padding: 6px;">🚂 BANGALORE CITY - SBC</button>
+              <button id="loadMumbai" style="font-size: 11px; padding: 6px;">🚂 MUMBAI CENTRAL - BCT</button>
+              <button id="loadDelhi" style="font-size: 11px; padding: 6px;">🚂 NEW DELHI - NDLS</button>
+              <button id="loadKolkata" style="font-size: 11px; padding: 6px;">🚂 HOWRAH JN - HWH</button>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <polyline points="3.29 7 12 12 20.73 7"></polyline>
+              <line x1="12" y1="22" x2="12" y2="12"></line>
+            </svg>
+            Trained Models
+          </h3>
+        </div>
+        <div class="model-list" style="margin-top: 12px;">
+          <div class="model-item" style="background: rgba(30, 41, 59, 0.5); border-radius: 8px; padding: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-weight: 500; font-size: 14px;">Delay Prediction v1.0</span>
+              <span class="status-pill" style="background: rgba(16, 185, 129, 0.15); color: #34d399; font-size: 11px; padding: 2px 8px; border-radius: 12px;">Active</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Accuracy: 87.5% | Trained: 2 days ago</div>
+            <div style="display: flex; gap: 8px; margin-top: 8px;">
+              <button class="btn btn-sm" style="padding: 4px 8px; font-size: 12px; background: rgba(59, 130, 246, 0.2);">Details</button>
+              <button class="btn btn-sm" style="padding: 4px 8px; font-size: 12px; background: rgba(34, 197, 94, 0.2);">Retrain</button>
+            </div>
+          </div>
+
+          <div class="model-item" style="background: rgba(30, 41, 59, 0.5); border-radius: 8px; padding: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-weight: 500; font-size: 14px;">Route Optimization v0.9</span>
+              <span class="status-pill" style="background: rgba(234, 179, 8, 0.15); color: #fbbf24; font-size: 11px; padding: 2px 8px; border-radius: 12px;">Training</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Epoch: 45/100 | ETA: 12m 34s</div>
+            <div style="height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; margin-bottom: 8px;">
+              <div style="width: 45%; height: 100%; background: linear-gradient(90deg, #f59e0b, #fbbf24);"></div>
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 8px;">
+              <button class="btn btn-sm" style="padding: 4px 8px; font-size: 12px; background: rgba(37, 99, 235, 0.2);">View Logs</button>
+              <button class="btn btn-sm" style="padding: 4px 8px; font-size: 12px; background: rgba(239, 68, 68, 0.2);">Stop</button>
+            </div>
+          </div>
+
+          <div class="model-item" style="background: rgba(30, 41, 59, 0.5); border-radius: 8px; padding: 12px; border: 1px solid rgba(255,255,255,0.05);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-weight: 500; font-size: 14px;">Demand Forecasting v0.5</span>
+              <span class="status-pill" style="background: rgba(239, 68, 68, 0.15); color: #f87171; font-size: 11px; padding: 2px 8px; border-radius: 12px;">Failed</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Error: CUDA out of memory</div>
+            <div style="display: flex; gap: 8px; margin-top: 8px;">
+              <button class="btn btn-sm" style="padding: 4px 8px; font-size: 12px; background: rgba(37, 99, 235, 0.2);">View Error</button>
+              <button class="btn btn-sm" style="padding: 4px 8px; font-size: 12px; background: rgba(34, 197, 94, 0.2);">Retry</button>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <button id="trainNewModel" class="btn btn-sm" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; background: rgba(37, 99, 235, 0.2);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Train New Model
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <strong>AI / ML (Browser)</strong>
+        <div style="margin-top:10px">
+          <div class="muted">A tiny TF.js model predicts delay-risk using synthetic features.</div>
+          <div style="margin-top:8px" class="btn-row">
+            <button id="genData">Generate Data</button>
+            <button id="trainModel">Train Model</button>
+            <button id="predictAll">Predict Risks</button>
+          </div>
+          <div id="mlStatus" style="margin-top:8px" class="muted">No model trained</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <strong>Quick controls</strong>
+        <div style="margin-top:8px">
+          <label>Number of sections (tracks)</label>
+          <input id="sections" type="number" value="3" />
+          <label>Simulation horizon (min)</label>
+          <input id="horizon" type="number" value="120" />
+          <div style="margin-top:8px" class="btn-row">
+            <button id="runOpt">Run Optimizer</button>
+            <button id="clear">Clear</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <section class="studio">
+      <div class="card">
+        <strong>Network & Schedule</strong>
+        <div class="muted" style="margin-top:6px">View the computed plan, risk scores, and simple KPIs.</div>
+        <div id="scheduleView" style="margin-top:10px"></div>
+      </div>
+
+      <div class="card">
+        <strong>AI Railway Assistant</strong>
+        <div class="muted" style="margin-top:6px">Ask me about trains, schedules, routes, or railway information!</div>
+        <div id="chatContainer" style="height: 300px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; margin-top: 10px; background: rgba(255,255,255,0.02);">
+          <div id="chatMessages">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; padding: 8px; background: rgba(34, 197, 94, 0.1); border-radius: 6px;">
+              <div style="width: 24px; height: 24px; background: #22c55e; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">🤖</div>
+              <div style="color: #e6eef6; font-size: 13px;">Hello! I'm your AI Railway Assistant. I can help you with train schedules, routes, station information, and railway queries. What would you like to know?</div>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+          <input id="chatInput" placeholder="Ask about trains, schedules, routes..." style="flex: 1; padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: inherit; font-size: 13px;">
+          <button id="sendMessage" style="padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: #22c55e; color: white; font-size: 13px; cursor: pointer;">Send</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <strong>Logs & Notes</strong>
+        <pre id="log">Ready.
+
+Ideas: This prototype uses a greedy + earliest-deadline-first scheduler with a small NN trained in-browser to estimate delay risk. Use it to prototype data flows, then replace the model with a server-side production model (PyTorch/TF) & real schedule engine.</pre>
+      </div>
+
+    </section>
+  </main>
+
+  <footer>Instructions: add trains on the left, generate synthetic data, train the tiny model, then run the optimizer. Copy the page to a file <code>index.html</code> and open in a modern browser.</footer>
+
+  <!-- TensorFlow.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.13.0/dist/tf.min.js"></script>
+
+  <script>
+  // Lightweight in-browser prototype scheduler + TF.js model
+  const trains = [];
+  let model = null;
+  let synthetic = null;
+
+  // Real train data from various railway junctions
+  const railwayJunctions = {
+    erode: {
+      name: "ERODE JN - ED",
+      trains: [
+    {
+      number: "12672",
+      name: "NILAGIRI SF EXP",
+      route: "Metupalaiyam (MTP) - Puratchi Thalaivar Dr. Mgr Ctl Chennai (MAS)",
+      type: "Superfast",
+      classes: "SLRD,GEN,3E,SL,3A,2A,1A",
+      arrival: "00:00",
+      departure: "00:05",
+      frequency: "Daily"
+    },
+    {
+      number: "16235",
+      name: "TN MYSURU EXP",
+      route: "Tuticorin (TN) - Mysore Jn (MYS)",
+      type: "Mail Express",
+      classes: "",
+      arrival: "00:05",
+      departure: "00:15",
+      frequency: "Daily"
+    },
+    {
+      number: "12674",
+      name: "CHERAN SF EXP",
+      route: "Coimbatore Jn (CBE) - Puratchi Thalaivar Dr. Mgr Ctl Chennai (MAS)",
+      type: "Superfast",
+      classes: "GEN,SL,3A,2A,1A,2S",
+      arrival: "00:25",
+      departure: "00:30",
+      frequency: "Daily"
+    },
+    {
+      number: "16525",
+      name: "CAPE SBC EXPRES",
+      route: "Kanniyakumari (CAPE) - Krantivira Sangolli Rayanna (bengaluru) (SBC)",
+      type: "Mail Express",
+      classes: "",
+      arrival: "00:40",
+      departure: "00:45",
+      frequency: "Daily"
+    },
+    {
+      number: "06556",
+      name: "TVCN SMVB SPL",
+      route: "Thiruvananthapuram North (TVCN) - Smvt Bengaluru (SMVB)",
+      type: "Train On Demand",
+      classes: "2A,3A",
+      arrival: "00:50",
+      departure: "00:55",
+      frequency: "Mon"
+    },
+    {
+      number: "12623",
+      name: "MAS TVC SF MAIL",
+      route: "Puratchi Thalaivar Dr. Mgr Ctl Chennai (MAS) - Thiruvananthapuram Central (TVC)",
+      type: "Superfast",
+      classes: "GEN,SL,3A,2A,1A,2S",
+      arrival: "00:50",
+      departure: "00:55",
+      frequency: "Daily"
+    },
+    {
+      number: "12643",
+      name: "TVC NZM SF EXP",
+      route: "Thiruvananthapuram Central (TVC) - Hazrat Nizamuddin Jn (NZM)",
+      type: "Superfast",
+      classes: "2A,3A,3E,SL,GEN,PWD,PC",
+      arrival: "00:50",
+      departure: "00:55",
+      frequency: "Wed"
+    },
+    {
+      number: "12645",
+      name: "MILLENNIUM EXP",
+      route: "Ernakulam Jn (ERS) - Hazrat Nizamuddin Jn (NZM)",
+      type: "Superfast",
+      classes: "2A,3A,SL,GEN,PWD",
+      arrival: "00:50",
+      departure: "00:55",
+      frequency: "Sun"
+    },
+    {
+      number: "16317",
+      name: "HIMSAGAR EXP",
+      route: "Kanniyakumari (CAPE) - Shri Mata Vaishno Devi Katra (SVDK)",
+      type: "Mail Express",
+      classes: "",
+      arrival: "03:00",
+      departure: "03:05",
+      frequency: "Sat"
+    },
+    {
+      number: "12258",
+      name: "TVCN YPR GR EXP",
+      route: "Thiruvananthapuram North (TVCN) - Yesvantpur Jn. (YPR)",
+      type: "Garib Rath",
+      classes: "3E",
+      arrival: "03:10",
+      departure: "03:15",
+      frequency: "Tue,Thu,Sat"
+    },
+    {
+      number: "12507",
+      name: "ARONAI EXPRESS",
+      route: "Thiruvananthapuram Central (TVC) - Silchar (SCL)",
+      type: "Superfast",
+      classes: "",
+      arrival: "03:10",
+      departure: "03:15",
+      frequency: "Wed"
+    },
+    {
+      number: "22641",
+      name: "SHALIMAR SF EXP",
+      route: "Thiruvananthapuram Central (TVC) - Shalimar (SHM)",
+      type: "Superfast",
+      classes: "",
+      arrival: "03:10",
+      departure: "03:15",
+      frequency: "Fri,Sun"
+    },
+    {
+      number: "06555",
+      name: "SMVB TVCN SPL",
+      route: "Smvt Bengaluru (SMVB) - Thiruvananthapuram North (TVCN)",
+      type: "Train On Demand",
+      classes: "",
+      arrival: "03:15",
+      departure: "03:20",
+      frequency: "Sat"
+    },
+    {
+      number: "06081",
+      name: "TVCN SRC SF SPL",
+      route: "Thiruvananthapuram North (TVCN) - Santragachi Jn (SRC)",
+      type: "Train On Demand",
+      classes: "3E, SL",
+      arrival: "03:20",
+      departure: "03:30",
+      frequency: "Sat"
+    },
+    {
+      number: "16236",
+      name: "TUTICORIN EXP",
+      route: "Mysore Jn (MYS) - Tuticorin (TN)",
+      type: "Mail Express",
+      classes: "",
+      arrival: "03:25",
+      departure: "03:35",
+      frequency: "Daily"
+    },
+    {
+      number: "12696",
+      name: "TVC MAS SF EXP",
+      route: "Thiruvananthapuram Central (TVC) - Puratchi Thalaivar Dr. Mgr Ctl Chennai (MAS)",
+      type: "Superfast",
+      classes: "SLRD, GEN, 1A+2A, 2A, 3A, SL",
+      arrival: "03:35",
+      departure: "03:40",
+      frequency: "Daily"
+    },
+    {
+      number: "12673",
+      name: "CHERAN SF EXP",
+      route: "Puratchi Thalaivar Dr. Mgr Ctl Chennai (MAS) - Coimbatore Jn (CBE)",
+      type: "Superfast",
+      classes: "GEN, SL, 3A, 2A, 1A, 2S",
+      arrival: "03:45",
+      departure: "03:50",
+      frequency: "Daily"
+    },
+    {
+      number: "16528",
+      name: "YESVANTPUR EXP",
+      route: "Kannur (CAN) - Yesvantpur Jn. (YPR)",
+      type: "Mail Express",
+      classes: "SLRD,2S,GEN,2A,1A+2A,3A,SL",
+      arrival: "01:05",
+      departure: "01:10",
+      frequency: "Daily"
+    },
+    {
+      number: "16526",
+      name: "KANYAKUMARI EXP",
+      route: "Krantivira Sangolli Rayanna (bengaluru) (SBC) - Kanniyakumari (CAPE)",
+      type: "Mail Express",
+      classes: "SLRD,GEN,3E,SL,3A,2A,1A",
+      arrival: "01:20",
+      departure: "01:25",
+      frequency: "Daily"
+    },
+    {
+      number: "12624",
+      name: "TVC MAS SF MAIL",
+      route: "Thiruvananthapuram Central (TVC) - Puratchi Thalaivar Dr. Mgr Ctl Chennai (MAS)",
+      type: "Superfast",
+      classes: "GEN,SL,3A,2A,1A,2S",
+      arrival: "01:25",
+      departure: "01:30",
+      frequency: "Daily"
+    }
+      ]
+    },
+    
+    chennai: {
+      name: "CHENNAI CENTRAL - MAS",
+      trains: [
+        {
+          number: "12621",
+          name: "TAMILNADU SF EXP",
+          route: "Chennai Central (MAS) - New Delhi (NDLS)",
+          type: "Superfast",
+          classes: "1A,2A,3A,SL,GEN",
+          arrival: "06:00",
+          departure: "06:10",
+          frequency: "Daily"
+        },
+        {
+          number: "12615",
+          name: "GRAND TRUNK EXP",
+          route: "Chennai Central (MAS) - New Delhi (NDLS)",
+          type: "Superfast",
+          classes: "1A,2A,3A,SL,GEN",
+          arrival: "07:30",
+          departure: "07:40",
+          frequency: "Daily"
+        },
+        {
+          number: "12639",
+          name: "SHATABDI EXP",
+          route: "Chennai Central (MAS) - Bangalore City (SBC)",
+          type: "Superfast",
+          classes: "CC,EC",
+          arrival: "06:00",
+          departure: "06:05",
+          frequency: "Daily"
+        },
+        {
+          number: "12641",
+          name: "VAIGAI SF EXP",
+          route: "Chennai Central (MAS) - Madurai Jn (MDU)",
+          type: "Superfast",
+          classes: "1A,2A,3A,SL,GEN",
+          arrival: "21:30",
+          departure: "21:40",
+          frequency: "Daily"
+        },
+        {
+          number: "12635",
+          name: "KAVERI SF EXP",
+          route: "Chennai Central (MAS) - Mysore Jn (MYS)",
+          type: "Superfast",
+          classes: "1A,2A,3A,SL,GEN",
+          arrival: "22:15",
+          departure: "22:25",
+          frequency: "Daily"
+        },
+        {
+          number: "12637",
+          name: "PANDIAN SF EXP",
+          route: "Chennai Central (MAS) - Madurai Jn (MDU)",
+          type: "Superfast",
+          classes: "1A,2A,3A,SL,GEN",
+          arrival: "23:00",
+          departure: "23:10",
+          frequency: "Daily"
+        }
+      ]
+    },
+    
+    bangalore: {
+      name: "BANGALORE CITY - SBC",
+      trains: [
+        {
+          number: "12609",
+          name: "SAMPARK KRANTI",
+          route: "Bangalore City (SBC) - Hazrat Nizamuddin (NZM)",
+          type: "Superfast",
+          classes: "2A,3A,SL,GEN",
+          arrival: "08:00",
+          departure: "08:10",
+          frequency: "Daily"
+        },
+        {
+          number: "12613",
+          name: "BANGALORE RAJDHANI",
+          route: "Bangalore City (SBC) - New Delhi (NDLS)",
+          type: "Superfast",
+          classes: "1A,2A,3A",
+          arrival: "20:30",
+          departure: "20:40",
+          frequency: "Daily"
+        },
+        {
+          number: "12649",
+          name: "SAMPARK KRANTI",
+          route: "Bangalore City (SBC) - New Delhi (NDLS)",
+          type: "Superfast",
+          classes: "2A,3A,SL,GEN",
+          arrival: "09:15",
+          departure: "09:25",
+          frequency: "Daily"
+        },
+        {
+          number: "12627",
+          name: "KARNATAKA SF EXP",
+          route: "Bangalore City (SBC) - New Delhi (NDLS)",
+          type: "Superfast",
+          classes: "1A,2A,3A,SL,GEN",
+          arrival: "19:45",
+          departure: "19:55",
+          frequency: "Daily"
+        },
+        {
+          number: "12639",
+          name: "SHATABDI EXP",
+          route: "Bangalore City (SBC) - Chennai Central (MAS)",
+          type: "Superfast",
+          classes: "CC,EC",
+          arrival: "14:30",
+          departure: "14:35",
+          frequency: "Daily"
+        }
+      ]
+    },
+    
+    mumbai: {
+      name: "MUMBAI CENTRAL - BCT",
+      trains: [
+        {
+          number: "12951",
+          name: "MUMBAI RAJDHANI",
+          route: "Mumbai Central (BCT) - New Delhi (NDLS)",
+          type: "Superfast",
+          classes: "1A,2A,3A",
+          arrival: "16:35",
+          departure: "16:45",
+          frequency: "Daily"
+        },
+        {
+          number: "12953",
+          name: "AUGUST KRANTI RAJ",
+          route: "Mumbai Central (BCT) - Hazrat Nizamuddin (NZM)",
+          type: "Superfast",
+          classes: "1A,2A,3A",
+          arrival: "17:20",
+          departure: "17:30",
+          frequency: "Daily"
+        },
+        {
+          number: "12925",
+          name: "PASCHIM SF EXP",
+          route: "Mumbai Central (BCT) - Amritsar Jn (ASR)",
+          type: "Superfast",
+          classes: "1A,2A,3A,SL,GEN",
+          arrival: "18:45",
+          departure: "18:55",
+          frequency: "Daily"
+        },
+        {
+          number: "12951",
+          name: "GUJARAT SF EXP",
+          route: "Mumbai Central (BCT) - Ahmedabad Jn (ADI)",
+          type: "Superfast",
+          classes: "1A,2A,3A,SL,GEN",
+          arrival: "06:15",
+          departure: "06:25",
+          frequency: "Daily"
+        },
+        {
+          number: "12953",
+          name: "GOLDEN TEMPLE MAIL",
+          route: "Mumbai Central (BCT) - Amritsar Jn (ASR)",
+          type: "Superfast",
+          classes: "1A,2A,3A,SL,GEN",
+          arrival: "21:30",
+          departure: "21:40",
+          frequency: "Daily"
+        }
+      ]
+    },
+    
+    delhi: {
+      name: "NEW DELHI - NDLS",
+      trains: [
+        {
+          number: "12001",
+          name: "SHATABDI EXP",
+          route: "New Delhi (NDLS) - Bhopal Jn (BPL)",
+          type: "Superfast",
+          classes: "CC,EC",
+          arrival: "06:00",
+          departure: "06:10",
+          frequency: "Daily"
+        },
+        {
+          number: "12002",
+          name: "SHATABDI EXP",
+          route: "New Delhi (NDLS) - Amritsar Jn (ASR)",
+          type: "Superfast",
+          classes: "CC,EC",
+          arrival: "07:15",
+          departure: "07:25",
+          frequency: "Daily"
+        },
+        {
+          number: "12003",
+          name: "SHATABDI EXP",
+          route: "New Delhi (NDLS) - Kalka (KLK)",
+          type: "Superfast",
+          classes: "CC,EC",
+          arrival: "07:30",
+          departure: "07:40",
+          frequency: "Daily"
+        },
+        {
+          number: "12004",
+          name: "SHATABDI EXP",
+          route: "New Delhi (NDLS) - Dehradun (DDN)",
+          type: "Superfast",
+          classes: "CC,EC",
+          arrival: "06:45",
+          departure: "06:55",
+          frequency: "Daily"
+        },
+        {
+          number: "12005",
+          name: "SHATABDI EXP",
+          route: "New Delhi (NDLS) - Ajmer Jn (AII)",
+          type: "Superfast",
+          classes: "CC,EC",
+          arrival: "06:15",
+          departure: "06:25",
+          frequency: "Daily"
+        }
+      ]
+    },
+    
+    kolkata: {
+      name: "HOWRAH JN - HWH",
+      trains: [
+        {
+          number: "12301",
+          name: "HOWRAH RAJDHANI",
+          route: "Howrah Jn (HWH) - New Delhi (NDLS)",
+          type: "Superfast",
+          classes: "1A,2A,3A",
+          arrival: "16:55",
+          departure: "17:05",
+          frequency: "Daily"
+        },
+        {
+          number: "12305",
+          name: "SEALDAH RAJDHANI",
+          route: "Howrah Jn (HWH) - New Delhi (NDLS)",
+          type: "Superfast",
+          classes: "1A,2A,3A",
+          arrival: "17:20",
+          departure: "17:30",
+          frequency: "Daily"
+        },
+        {
+          number: "12309",
+          name: "COROMANDEL EXP",
+          route: "Howrah Jn (HWH) - Chennai Central (MAS)",
+          type: "Superfast",
+          classes: "1A,2A,3A,SL,GEN",
+          arrival: "14:30",
+          departure: "14:40",
+          frequency: "Daily"
+        },
+        {
+          number: "12313",
+          name: "FALAKNUMA EXP",
+          route: "Howrah Jn (HWH) - Secunderabad Jn (SC)",
+          type: "Superfast",
+          classes: "1A,2A,3A,SL,GEN",
+          arrival: "15:45",
+          departure: "15:55",
+          frequency: "Daily"
+        },
+        {
+          number: "12317",
+          name: "HIMGIRI SF EXP",
+          route: "Howrah Jn (HWH) - Jammu Tawi (JAT)",
+          type: "Superfast",
+          classes: "1A,2A,3A,SL,GEN",
+          arrival: "16:15",
+          departure: "16:25",
+          frequency: "Daily"
+        }
+      ]
+    }
+  };
+
+  function log(msg){
+    const el = document.getElementById('log');
+    el.textContent = msg + '\n\n' + el.textContent;
+  }
+
+  document.getElementById('addTrain').onclick = ()=>{
+    const name = document.getElementById('tname').value || ('T'+(trains.length+1));
+    const type = document.getElementById('ttype').value;
+    const arr = parseInt(document.getElementById('arr').value || 0);
+    const dwell = parseInt(document.getElementById('dwell').value || 5);
+    const length = parseFloat(document.getElementById('length').value || 2);
+    const priority = (type==='express')?3:(type==='passenger')?2:(type==='freight')?1:0;
+    const t = {id:trains.length+1,name,type,arr,dwell,length,priority};
+    trains.push(t);
+    renderSchedule(trains);
+    log('Added train '+name+' type='+type+' arr='+arr);
+    
+    // Show notification
+    const notification = document.getElementById('notification');
+    notification.textContent = `Train ${name} added successfully!`;
+    notification.classList.add('show');
+    
+    // Hide notification after 3 seconds
+    setTimeout(() => {
+      notification.classList.remove('show');
+    }, 3000);
+  };
+
+  document.getElementById('clear').onclick = ()=>{trains.length=0; renderCustomSchedule(trains); log('Cleared trains');}
+  
+  // Individual junction load buttons
+  document.getElementById('loadErode').onclick = ()=>{
+    renderJunctionSchedule('erode');
+    const junctionData = railwayJunctions['erode'];
+    log('Loaded ' + junctionData.name + ' train schedule with ' + junctionData.trains.length + ' trains');
+  }
+  
+  document.getElementById('loadChennai').onclick = ()=>{
+    renderJunctionSchedule('chennai');
+    const junctionData = railwayJunctions['chennai'];
+    log('Loaded ' + junctionData.name + ' train schedule with ' + junctionData.trains.length + ' trains');
+  }
+  
+  document.getElementById('loadBangalore').onclick = ()=>{
+    renderJunctionSchedule('bangalore');
+    const junctionData = railwayJunctions['bangalore'];
+    log('Loaded ' + junctionData.name + ' train schedule with ' + junctionData.trains.length + ' trains');
+  }
+  
+  document.getElementById('loadMumbai').onclick = ()=>{
+    renderJunctionSchedule('mumbai');
+    const junctionData = railwayJunctions['mumbai'];
+    log('Loaded ' + junctionData.name + ' train schedule with ' + junctionData.trains.length + ' trains');
+  }
+  
+  document.getElementById('loadDelhi').onclick = ()=>{
+    renderJunctionSchedule('delhi');
+    const junctionData = railwayJunctions['delhi'];
+    log('Loaded ' + junctionData.name + ' train schedule with ' + junctionData.trains.length + ' trains');
+  }
+  
+  document.getElementById('loadKolkata').onclick = ()=>{
+    renderJunctionSchedule('kolkata');
+    const junctionData = railwayJunctions['kolkata'];
+    log('Loaded ' + junctionData.name + ' train schedule with ' + junctionData.trains.length + ' trains');
+  }
+
+  function renderSchedule(list, plan){
+    const container = document.getElementById('scheduleView');
+    if(list.length===0){ container.innerHTML='<div class="muted">No trains added yet.</div>'; return }
+    let html = '<table><thead><tr><th>#</th><th>Name</th><th>Type</th><th>Arr</th><th>Dwell</th><th>Priority</th><th>Risk</th><th>Assigned Section</th></tr></thead><tbody>';
+    for(const t of list){
+      const p = t.pred||'—';
+      const riskClass = (p==='—')?'' : (p>0.66)?'risk-high':(p>0.33)?'risk-med':'risk-low';
+      const sect = (plan && plan.assign && plan.assign[t.id])?plan.assign[t.id]:'—';
+      html += `<tr><td>${t.id}</td><td>${t.name}</td><td>${t.type}</td><td>${t.arr}</td><td>${t.dwell}</td><td>${t.priority}</td><td><span class="status-pill ${riskClass}">${(p==='—')?'-':(p>0.66?'HIGH':(p>0.33?'MED':'LOW'))}</span></td><td>${sect}</td></tr>`;
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  }
+
+  function renderJunctionSchedule(junctionKey){
+    const junctionData = railwayJunctions[junctionKey];
+    const container = document.getElementById('scheduleView');
+    let html = `
+      <div style="margin-bottom: 20px; padding: 15px; background: rgba(34, 197, 94, 0.1); border-radius: 8px; border-left: 4px solid #22c55e;">
+        <h3 style="margin: 0 0 10px 0; color: #22c55e; font-size: 18px;">🚂 ${junctionData.name} Station Schedule</h3>
+        <div style="color: var(--muted); font-size: 14px;">${junctionData.trains.length} Trains scheduled at ${junctionData.name}</div>
+      </div>
+      <div style="max-height: 500px; overflow-y: auto;">
+    `;
+    
+    junctionData.trains.forEach((train, index) => {
+      const typeClass = train.type.includes('Superfast') ? 'risk-low' : 
+                       train.type.includes('Express') ? 'risk-med' : 'risk-high';
+      
+      html += `
+        <div style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; margin-bottom: 12px; padding: 15px; background: rgba(255,255,255,0.02);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+            <div>
+              <div style="font-weight: bold; font-size: 16px; color: #e6eef6; margin-bottom: 4px;">
+                Train ${train.number} ${train.name}
+              </div>
+              <div style="color: var(--muted); font-size: 13px; margin-bottom: 6px;">
+                ${train.route}
+              </div>
+              <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                <span class="status-pill ${typeClass}" style="font-size: 11px;">${train.type}</span>
+                ${train.classes ? `<span style="color: var(--muted); font-size: 12px;">| ${train.classes}</span>` : ''}
+              </div>
+            </div>
+            <div style="text-align: right; display: flex; align-items: center; gap: 8px;">
+              <div style="font-size: 12px; color: var(--muted);">📅</div>
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05);">
+            <div>
+              <div style="font-size: 11px; color: var(--muted); margin-bottom: 4px;">ARRIVAL</div>
+              <div style="font-weight: bold; font-size: 14px; color: #e6eef6;">${train.arrival}</div>
+            </div>
+            <div>
+              <div style="font-size: 11px; color: var(--muted); margin-bottom: 4px;">DEPARTURE</div>
+              <div style="font-weight: bold; font-size: 14px; color: #e6eef6;">${train.departure}</div>
+            </div>
+            <div>
+              <div style="font-size: 11px; color: var(--muted); margin-bottom: 4px;">FREQUENCY</div>
+              <div style="font-weight: bold; font-size: 14px; color: #e6eef6;">${train.frequency}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  function renderCustomSchedule(list, plan){
+    const container = document.getElementById('scheduleView');
+    if(list.length===0){ 
+      container.innerHTML='<div class="muted">No trains added yet.</div>'; 
+      return 
+    }
+    
+    let html = `
+      <div style="margin-bottom: 20px; padding: 15px; background: rgba(34, 197, 94, 0.1); border-radius: 8px; border-left: 4px solid #22c55e;">
+        <h3 style="margin: 0 0 10px 0; color: #22c55e; font-size: 18px;">🚂 Custom Train Schedule</h3>
+        <div style="color: var(--muted); font-size: 14px;">${list.length} Trains scheduled</div>
+      </div>
+      <div style="max-height: 500px; overflow-y: auto;">
+    `;
+    
+    for(const t of list){
+      const p = t.pred||'—';
+      const riskClass = (p==='—')?'' : (p>0.66)?'risk-high':(p>0.33)?'risk-med':'risk-low';
+      const sect = (plan && plan.assign && plan.assign[t.id])?plan.assign[t.id]:'—';
+      
+      html += `
+        <div style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; margin-bottom: 12px; padding: 15px; background: rgba(255,255,255,0.02);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+            <div>
+              <div style="font-weight: bold; font-size: 16px; color: #e6eef6; margin-bottom: 4px;">
+                Train ${t.id} ${t.name}
+              </div>
+              <div style="color: var(--muted); font-size: 13px; margin-bottom: 6px;">
+                Type: ${t.type} | Priority: ${t.priority} | Length: ${t.length}km
+              </div>
+              <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                <span class="status-pill ${riskClass}" style="font-size: 11px;">${(p==='—')?'-':(p>0.66?'HIGH RISK':(p>0.33?'MED RISK':'LOW RISK'))}</span>
+                <span style="color: var(--muted); font-size: 12px;">| Section: ${sect}</span>
+              </div>
+            </div>
+            <div style="text-align: right; display: flex; align-items: center; gap: 8px;">
+              <div style="font-size: 12px; color: var(--muted);">📅</div>
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05);">
+            <div>
+              <div style="font-size: 11px; color: var(--muted); margin-bottom: 4px;">ARRIVAL</div>
+              <div style="font-weight: bold; font-size: 14px; color: #e6eef6;">${t.arr}:00</div>
+            </div>
+            <div>
+              <div style="font-size: 11px; color: var(--muted); margin-bottom: 4px;">DWELL TIME</div>
+              <div style="font-weight: bold; font-size: 14px; color: #e6eef6;">${t.dwell} min</div>
+            </div>
+            <div>
+              <div style="font-size: 11px; color: var(--muted); margin-bottom: 4px;">PRIORITY</div>
+              <div style="font-weight: bold; font-size: 14px; color: #e6eef6;">${t.priority}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  // Simple greedy scheduler:
+  // - Sort by arrival window then by priority
+  // - Try to place onto earliest free section respecting dwell time
+  function runGreedyScheduler(sections, horizon){
+    // initialize timeline for each section: array of end-times
+    const timeline = new Array(sections).fill(0);
+    const assign = {};
+    // sort trains by arr then priority(desc)
+    const list = [...trains].sort((a,b)=> (a.arr-b.arr) || (b.priority-a.priority));
+    for(const t of list){
+      // find section with earliest available time <= horizon
+      let best = -1; let bestTime = Infinity;
+      for(let s=0;s<sections;s++){
+        const available = timeline[s];
+        // we schedule start = max(available, t.arr)
+        const start = Math.max(available, t.arr);
+        const finish = start + t.dwell;
+        if(finish <= horizon && start < bestTime){ best = s; bestTime = start }
+      }
+      if(best>=0){
+        timeline[best] = bestTime + t.dwell; // update
+        assign[t.id] = best+1; // 1-based section
+      } else {
+        assign[t.id] = 'UNSCHEDULED';
+      }
+    }
+    return {assign,timeline};
+  }
+
+  document.getElementById('runOpt').onclick = ()=>{
+    const secs = parseInt(document.getElementById('sections').value||3);
+    const horizon = parseInt(document.getElementById('horizon').value||120);
+    const plan = runGreedyScheduler(secs,horizon);
+    renderCustomSchedule(trains,plan);
+    log('Optimizer finished. Unscheduled: '+ Object.values(plan.assign).filter(v=>v==='UNSCHEDULED').length);
+  }
+
+  // === Tiny TF.js model: predict delay risk based on features ===
+  // features: [priority, arr, dwell, length, scheduled?]
+  document.getElementById('genData').onclick = ()=>{
+    // create synthetic dataset
+    const N=800;
+    const X=[]; const Y=[];
+    for(let i=0;i<N;i++){
+      const priority = Math.random()*3; // 0-3
+      const arr = Math.random()*120;
+      const dwell = 1+Math.random()*20;
+      const length = 0.5 + Math.random()*10;
+      // risk heuristic: later arrival + low priority + long dwell => higher risk
+      let risk = (arr/120)*0.6 + (1-(priority/3))*0.25 + ((dwell-1)/21)*0.15 + (Math.random()*0.05);
+      risk = Math.max(0, Math.min(1, risk));
+      X.push([priority,arr,dwell,length]); Y.push(risk);
+    }
+    synthetic = {X:tf.tensor2d(X), Y:tf.tensor2d(Y,[N,1])};
+    document.getElementById('mlStatus').textContent = 'Synthetic dataset ready ('+N+' samples)';
+    log('Synthetic data generated');
+  }
+
+  document.getElementById('trainModel').onclick = async ()=>{
+    if(!synthetic){ alert('Generate data first'); return }
+    document.getElementById('mlStatus').textContent = 'Training... (in browser)';
+    // small model
+    model = tf.sequential();
+    model.add(tf.layers.dense({units:24,inputShape:[4],activation:'relu'}));
+    model.add(tf.layers.dense({units:12,activation:'relu'}));
+    model.add(tf.layers.dense({units:1,activation:'sigmoid'}));
+    model.compile({optimizer:tf.train.adam(0.01), loss:'meanSquaredError'});
+    await model.fit(synthetic.X, synthetic.Y, {epochs:25, batchSize:64, callbacks:{onEpochEnd:(e,l)=>{document.getElementById('mlStatus').textContent='Epoch '+(e+1)+' Loss '+l.toFixed(4)}}});
+    document.getElementById('mlStatus').textContent = 'Model trained';
+    log('Model trained in-browser');
+  }
+
+  document.getElementById('predictAll').onclick = async ()=>{
+    if(!model){ alert('Train model first'); return }
+    for(const t of trains){
+      const inp = tf.tensor2d([[t.priority, t.arr, t.dwell, t.length]]);
+      const p = (await model.predict(inp).data())[0];
+      t.pred = p;
+    }
+    renderCustomSchedule(trains);
+    log('Predicted risk for '+trains.length+' trains');
+  }
+
+  // convenience: basic simulate to create some demo trains
+  document.getElementById('simulate').onclick = ()=>{
+    const demo = [
+      {name:'Rajdhani',type:'express',arr:5,dwell:6,priority:3,length:2},
+      {name:'Local-220',type:'passenger',arr:2,dwell:3,priority:2,length:1},
+      {name:'Freight-11',type:'freight',arr:10,dwell:18,priority:1,length:8},
+      {name:'Special-900',type:'express',arr:20,dwell:7,priority:3,length:3},
+      {name:'Maint-1',type:'maintenance',arr:15,dwell:30,priority:0,length:4}
+    ];
+    for(const d of demo){ d.id=trains.length+1; trains.push(d) }
+    renderCustomSchedule(trains);
+    log('Added demo trains');
+  }
+
+  // AI Assistant functionality
+  function addMessage(message, isUser = false) {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.style.display = 'flex';
+    messageDiv.style.alignItems = 'center';
+    messageDiv.style.gap = '8px';
+    messageDiv.style.marginBottom = '10px';
+    messageDiv.style.padding = '8px';
+    messageDiv.style.borderRadius = '6px';
+    
+    if (isUser) {
+      messageDiv.style.background = 'rgba(34, 197, 94, 0.1)';
+      messageDiv.style.justifyContent = 'flex-end';
+      messageDiv.innerHTML = `
+        <div style="color: #e6eef6; font-size: 13px; text-align: right;">${message}</div>
+        <div style="width: 24px; height: 24px; background: #22c55e; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">👤</div>
+      `;
+    } else {
+      messageDiv.style.background = 'rgba(255, 255, 255, 0.05)';
+      messageDiv.innerHTML = `
+        <div style="width: 24px; height: 24px; background: #22c55e; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">🤖</div>
+        <div style="color: #e6eef6; font-size: 13px;">${message}</div>
+      `;
+    }
+    
+    chatMessages.appendChild(messageDiv);
+    document.getElementById('chatContainer').scrollTop = document.getElementById('chatContainer').scrollHeight;
+  }
+
+  function getAIResponse(userMessage) {
+    const message = userMessage.toLowerCase();
+    
+    // Train schedule queries
+    if (message.includes('erode') || message.includes('ed')) {
+      return "🚂 Erode Junction (ED) has 20+ trains including Nilagiri SF, Cheran SF, and various Express trains. Click the 'ERODE JN - ED' button to see the complete schedule!";
+    }
+    
+    if (message.includes('chennai') || message.includes('mas')) {
+      return "🚂 Chennai Central (MAS) serves major trains like Tamil Nadu SF, Grand Trunk Express, and Shatabdi. Click the 'CHENNAI CENTRAL - MAS' button to view all trains!";
+    }
+    
+    if (message.includes('bangalore') || message.includes('sbc')) {
+      return "🚂 Bangalore City (SBC) connects to major cities with trains like Bangalore Rajdhani, Sampark Kranti, and Karnataka SF. Click the 'BANGALORE CITY - SBC' button for details!";
+    }
+    
+    if (message.includes('mumbai') || message.includes('bct')) {
+      return "🚂 Mumbai Central (BCT) is a major hub with Mumbai Rajdhani, August Kranti Raj, and Paschim SF. Click the 'MUMBAI CENTRAL - BCT' button to see the schedule!";
+    }
+    
+    if (message.includes('delhi') || message.includes('ndls')) {
+      return "🚂 New Delhi (NDLS) is the capital's main station with multiple Shatabdi Express trains to various destinations. Click the 'NEW DELHI - NDLS' button for the schedule!";
+    }
+    
+    if (message.includes('kolkata') || message.includes('howrah') || message.includes('hwh')) {
+      return "🚂 Howrah Junction (HWH) serves Eastern India with trains like Howrah Rajdhani, Coromandel Express, and Falaknuma. Click the 'HOWRAH JN - HWH' button to view!";
+    }
+    
+    // Train type queries
+    if (message.includes('rajdhani')) {
+      return "🚄 Rajdhani Express trains are premium superfast trains connecting major cities. They offer 1A, 2A, and 3A classes with meals included. Examples: Mumbai Rajdhani, Bangalore Rajdhani, Howrah Rajdhani.";
+    }
+    
+    if (message.includes('shatabdi')) {
+      return "🚄 Shatabdi Express trains are day-time superfast trains with CC (Chair Car) and EC (Executive Class) seating. They connect major cities and offer meals. Examples: Chennai-Bangalore Shatabdi, Delhi-Ajmer Shatabdi.";
+    }
+    
+    if (message.includes('superfast') || message.includes('sf')) {
+      return "🚄 Superfast trains have higher priority and cover long distances quickly. They offer various classes: 1A, 2A, 3A, SL, GEN. Examples: Tamil Nadu SF, Karnataka SF, Coromandel Express.";
+    }
+    
+    if (message.includes('express')) {
+      return "🚄 Express trains are fast passenger services connecting major cities. They offer 1A, 2A, 3A, SL, and General classes. Examples: Grand Trunk Express, Vaigai Express, Pandian Express.";
+    }
+    
+    // Class queries
+    if (message.includes('1a') || message.includes('first ac')) {
+      return "🏆 1A (First AC) is the most premium class with 2-berth and 4-berth compartments, air conditioning, and meals. Available on Rajdhani, Shatabdi, and premium trains.";
+    }
+    
+    if (message.includes('2a') || message.includes('second ac')) {
+      return "🏆 2A (Second AC) offers 4-berth compartments with air conditioning and meals. Available on most long-distance trains including Rajdhani and Superfast trains.";
+    }
+    
+    if (message.includes('3a') || message.includes('third ac')) {
+      return "🏆 3A (Third AC) provides 6-berth compartments with air conditioning. Most common AC class on long-distance trains.";
+    }
+    
+    if (message.includes('sl') || message.includes('sleeper')) {
+      return "🛏️ SL (Sleeper Class) offers 6-berth compartments without air conditioning. Most economical option for overnight journeys.";
+    }
+    
+    if (message.includes('general') || message.includes('gen')) {
+      return "🪑 General class offers unreserved seating. Most economical option for short-distance travel.";
+    }
+    
+    // Route queries
+    if (message.includes('route') || message.includes('from') || message.includes('to')) {
+      return "🗺️ I can help you find routes between stations! Each train shows its complete route from origin to destination. Use the junction buttons to see trains from specific stations, or ask about specific routes like 'Chennai to Delhi' or 'Mumbai to Bangalore'.";
+    }
+    
+    // Schedule queries
+    if (message.includes('time') || message.includes('schedule') || message.includes('departure') || message.includes('arrival')) {
+      return "⏰ Each train shows arrival and departure times at the station. Click any junction button to see detailed schedules with arrival/departure times and frequency (Daily, specific days, etc.).";
+    }
+    
+    // General help
+    if (message.includes('help') || message.includes('what can you do')) {
+      return "🤖 I can help you with:\n• Train schedules and timings\n• Station information\n• Train types (Rajdhani, Shatabdi, Express)\n• Coach classes (1A, 2A, 3A, SL, GEN)\n• Routes between cities\n• Railway terminology\n\nJust ask me anything about trains!";
+    }
+    
+    // Default responses
+    if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
+      return "👋 Hello! I'm your AI Railway Assistant. I can help you with train schedules, routes, station information, and railway queries. What would you like to know?";
+    }
+    
+    if (message.includes('thank')) {
+      return "😊 You're welcome! Feel free to ask me anything else about trains or railway information.";
+    }
+    
+    // Fallback response
+    return "🤔 I understand you're asking about: \"" + userMessage + "\". I can help with train schedules, routes, station information, train types, and coach classes. Try asking about specific stations like 'Erode', 'Chennai', or train types like 'Rajdhani' or 'Shatabdi'.";
+  }
+
+  // Chat functionality
+  document.getElementById('sendMessage').onclick = () => {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    if (message) {
+      addMessage(message, true);
+      input.value = '';
+      
+      // Simulate AI thinking delay
+      setTimeout(() => {
+        const response = getAIResponse(message);
+        addMessage(response, false);
+      }, 500);
+    }
+  };
+
+  document.getElementById('chatInput').onkeypress = (e) => {
+    if (e.key === 'Enter') {
+      document.getElementById('sendMessage').click();
+    }
+  };
+
+  // initial render - show Erode schedule by default
+  renderJunctionSchedule('erode');
+
+  </script>
+</body>
+</html>
